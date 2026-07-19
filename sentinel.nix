@@ -52,6 +52,7 @@
 		subnet = "192.168.0.0/24";
 	}];
 
+	programs.git.enable = true;
 	programs.tmux.enable = true;
 
 	system.stateVersion = "26.05";
