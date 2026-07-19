@@ -7,6 +7,8 @@
 		./modules/dnsmasq.nix
 	];
 
+	nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
 	networking.hostName = "sentinel";
 
 	boot.loader.systemd-boot.enable = true;
