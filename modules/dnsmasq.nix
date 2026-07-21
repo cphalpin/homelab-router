@@ -1,5 +1,6 @@
 { lib, config, ... }: let
 	ipv4 = import ../lib/ipv4.nix { inherit lib; };
+	namedHosts = import ../lib/named-hosts.nix { inherit lib; };
 
 	cloudflareDnsAddresses = [
 		"1.1.1.2"
@@ -7,6 +8,7 @@
 	];
 
 	gatewayAddress = subnet: ipv4.firstAssignable subnet;
+	allocatedNamedHosts = namedHosts.allocate config.router.vlans config.router.namedHosts;
 in {
 	services.dnsmasq = {
 		enable = true;
@@ -38,6 +40,13 @@ in {
 				"tag:${name},option:router,${gatewayAddress subnet}"
 				"tag:${name},option:dns-server,${gatewayAddress subnet}"
 			]) config.router.vlans);
+
+			dhcp-host = map ( { mac, name, address, ... }: lib.join "," [
+				mac
+				name
+				address
+				"infinite"
+			]) allocatedNamedHosts;
 		};
 	};
 }

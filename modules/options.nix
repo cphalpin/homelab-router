@@ -47,5 +47,29 @@ in {
 			default = { };
 			description = "LAN VLANs routed by this host.";
 		};
+
+		namedHosts = mkOption {
+			type = types.attrsOf (types.submodule {
+				options = {
+					mac = mkOption {
+						type = types.strMatching "[0-9a-fA-F][0-9a-fA-F]:[0-9a-fA-F][0-9a-fA-F]:[0-9a-fA-F][0-9a-fA-F]:[0-9a-fA-F][0-9a-fA-F]:[0-9a-fA-F][0-9a-fA-F]:[0-9a-fA-F][0-9a-fA-F]";
+						description = "MAC address used to identify this host for DHCP.";
+					};
+
+					vlan = mkOption {
+						type = types.str;
+						description = "VLAN interface name this host belongs to.";
+					};
+
+					permittedToAccessVlans = mkOption {
+						type = types.listOf types.str;
+						default = [ ];
+						description = "VLAN interface names this host may initiate connections to.";
+					};
+				};
+			});
+			default = { };
+			description = "Named hosts with DHCP reservations and optional host-specific access rules.";
+		};
 	};
 }

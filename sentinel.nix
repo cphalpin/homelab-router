@@ -62,6 +62,14 @@
 		};
 	};
 
+	router.namedHosts = {
+		home-assistant = {
+			mac = "52:54:73:ce:d2:0a";
+			vlan = "services";
+			permittedToAccessVlans = [ "iot" ];
+		};
+	};
+
 	programs.git.enable = true;
 	programs.tmux.enable = true;
 
