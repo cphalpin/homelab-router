@@ -44,7 +44,7 @@
 		subnet = "192.168.3.0/24";
 	} {
 		id = 5;
-		name = "solarassistant";
+		name = "services";
 		subnet = "192.168.4.0/24";
 	} {
 		id = 6;
