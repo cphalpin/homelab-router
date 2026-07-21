@@ -30,10 +30,16 @@ in {
 						description = "IPv4 CIDR subnet assigned to the VLAN.";
 					};
 
-					trusted = mkOption {
+					permittedToAccessVlans = mkOption {
+						type = types.listOf types.str;
+						default = [ ];
+						description = "VLAN interface names hosts on this VLAN may initiate connections to.";
+					};
+
+					canSshToRouter = mkOption {
 						type = types.bool;
 						default = false;
-						description = "Whether hosts on this VLAN may initiate connections to other VLANs.";
+						description = "Whether hosts on this VLAN may make ssh connections to the router.";
 					};
 
 					internet = mkOption {

@@ -37,7 +37,11 @@
 		id = 3;
 		name = "trusted";
 		subnet = "192.168.2.0/24";
-		trusted = true;
+		permittedToAccessVlans = [
+			"infrastructure"
+			"services"
+		];
+		canSshToRouter = true;
 	} {
 		id = 4;
 		name = "iot";
@@ -50,6 +54,11 @@
 		id = 6;
 		name = "guest";
 		subnet = "192.168.0.0/24";
+	} {
+		id = 7;
+		name = "bridget";
+		subnet = "192.168.5.0/24";
+		permittedToAccessVlans = [ "services" ];
 	}];
 
 	programs.git.enable = true;
