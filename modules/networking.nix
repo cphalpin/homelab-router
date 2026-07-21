@@ -1,7 +1,7 @@
 { lib, config, ... }: let
 	ipv4 = import ../lib/ipv4.nix { inherit lib; };
 
-	internetVlans = lib.filter ( { internet, ... }: internet ) config.router.vlans;
+	internetVlans = lib.filterAttrs ( _: { internet, ... }: internet ) config.router.vlans;
 in {
 	networking.useNetworkd = true;
 
@@ -20,19 +20,18 @@ in {
 	networking.nat = {
 		enable = true;
 		externalInterface = config.router.wan-interface;
-		internalInterfaces = map ( { name, ... }: name ) internetVlans;
+		internalInterfaces = builtins.attrNames internetVlans;
 	};
 
-	systemd.network.netdevs = builtins.listToAttrs ( map ( { id, name, ... }: {
-		name = "10-${name}";
-		value = {
+	systemd.network.netdevs = lib.mapAttrs' ( name: { id, ... }:
+		lib.nameValuePair "10-${name}" {
 			netdevConfig = {
 				Kind = "vlan";
 				Name = name;
 			};
 			vlanConfig.Id = id;
-		};
-	}) config.router.vlans );
+		}
+	) config.router.vlans;
 
 	systemd.network.networks = {
 		wan = {
@@ -45,16 +44,13 @@ in {
 		lan = {
 			matchConfig.Name = config.router.lan-interface;
 			networkConfig.LinkLocalAddressing = "ipv4";
-			vlan = map (lib.attrByPath [ "name" ] "") config.router.vlans;
+			vlan = builtins.attrNames config.router.vlans;
 		};
-	} // builtins.listToAttrs ( map ( { name, subnet, ... }: {
-		name = name;
-		value = {
+	} // lib.mapAttrs ( name: { subnet, ... }: {
 			matchConfig.Name = name;
 			networkConfig.LinkLocalAddressing = "ipv4";
 			address = [
 				"${ipv4.firstAssignable subnet}/${toString (ipv4.parseCidr subnet).prefix}"
 			];
-		};
-	} ) config.router.vlans );
+	} ) config.router.vlans;
 }

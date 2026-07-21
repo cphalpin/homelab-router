@@ -29,37 +29,38 @@
 	router.wan-interface = "enp1s0";
 	router.lan-interface = "enp2s0";
 
-	router.vlans = [ {
-		id = 2;
-		name = "infrastructure";
-		subnet = "192.168.1.0/24";
-	} {
-		id = 3;
-		name = "trusted";
-		subnet = "192.168.2.0/24";
-		permittedToAccessVlans = [
-			"infrastructure"
-			"services"
-		];
-		canSshToRouter = true;
-	} {
-		id = 4;
-		name = "iot";
-		subnet = "192.168.3.0/24";
-	} {
-		id = 5;
-		name = "services";
-		subnet = "192.168.4.0/24";
-	} {
-		id = 6;
-		name = "guest";
-		subnet = "192.168.0.0/24";
-	} {
-		id = 7;
-		name = "bridget";
-		subnet = "192.168.5.0/24";
-		permittedToAccessVlans = [ "services" ];
-	}];
+	router.vlans = {
+		infrastructure = {
+			id = 2;
+			subnet = "192.168.1.0/24";
+		};
+		trusted = {
+			id = 3;
+			subnet = "192.168.2.0/24";
+			permittedToAccessVlans = [
+				"infrastructure"
+				"services"
+			];
+			canSshToRouter = true;
+		};
+		iot = {
+			id = 4;
+			subnet = "192.168.3.0/24";
+		};
+		services = {
+			id = 5;
+			subnet = "192.168.4.0/24";
+		};
+		guest = {
+			id = 6;
+			subnet = "192.168.0.0/24";
+		};
+		bridget = {
+			id = 7;
+			subnet = "192.168.5.0/24";
+			permittedToAccessVlans = [ "services" ];
+		};
+	};
 
 	programs.git.enable = true;
 	programs.tmux.enable = true;

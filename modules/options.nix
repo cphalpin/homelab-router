@@ -13,16 +13,11 @@ in {
 		};
 
 		vlans = mkOption {
-			type = types.listOf (types.submodule {
+			type = types.attrsOf (types.submodule {
 				options = {
 					id = mkOption {
 						type = types.ints.between 1 4094;
 						description = "802.1Q VLAN identifier.";
-					};
-
-					name = mkOption {
-						type = types.strMatching "[A-Za-z0-9_.-]+";
-						description = "Interface name for the VLAN.";
 					};
 
 					subnet = mkOption {
@@ -49,7 +44,7 @@ in {
 					};
 				};
 			});
-			default = [ ];
+			default = { };
 			description = "LAN VLANs routed by this host.";
 		};
 	};

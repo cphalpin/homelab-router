@@ -1,7 +1,7 @@
 { lib, config, ... }: let
-	inherit (lib) join filter;
+	inherit (lib) filterAttrs join;
 
-	vlanInterfaces = map ( { name, ... }: name ) config.router.vlans;
+	vlanInterfaces = builtins.attrNames config.router.vlans;
 
 	nftInterfaceSet = interfaces: join ", " (map ( name: ''"${name}"'' ) interfaces);
 in {
@@ -9,7 +9,7 @@ in {
 
 	services.openssh.openFirewall = false;
 
-	assertions = map ( { name, permittedToAccessVlans, ... }: {
+	assertions = lib.mapAttrsToList ( name: { permittedToAccessVlans, ... }: {
 		assertion = lib.all ( target: lib.elem target vlanInterfaces ) permittedToAccessVlans;
 		message = "router.vlans entry '${name}' has unknown permittedToAccessVlans target(s): ${join ", " permittedToAccessVlans}";
 	}) config.router.vlans;
@@ -21,17 +21,13 @@ in {
 		allowedTCPPorts = lib.mkForce [ ];
 		allowedUDPPorts = lib.mkForce [ ];
 
-		interfaces = builtins.listToAttrs (map ( { name, canSshToRouter, ... }: {
-			inherit name;
-			value = {
-				allowedTCPPorts = [ 53 ] ++ lib.optional canSshToRouter 22;
-				allowedUDPPorts = [ 53 67 ];
-			};
-		}) config.router.vlans);
+		interfaces = lib.mapAttrs ( _: { canSshToRouter, ... }: {
+			allowedTCPPorts = [ 53 ] ++ lib.optional canSshToRouter 22;
+			allowedUDPPorts = [ 53 67 ];
+		}) config.router.vlans;
 
-		extraForwardRules = join "\n" (map (
-			{ name, permittedToAccessVlans, ... }:
-				''iifname "${name}" oifname { ${nftInterfaceSet permittedToAccessVlans} } accept''
-		) (filter ( { permittedToAccessVlans, ... }: permittedToAccessVlans != [ ] ) config.router.vlans));
+		extraForwardRules = join "\n" (lib.mapAttrsToList ( name: { permittedToAccessVlans, ... }:
+			''iifname "${name}" oifname { ${nftInterfaceSet permittedToAccessVlans} } accept''
+		) (filterAttrs ( _: { permittedToAccessVlans, ... }: permittedToAccessVlans != [] ) config.router.vlans));
 	};
 }

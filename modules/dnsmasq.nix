@@ -25,16 +25,16 @@ in {
 
 			server = cloudflareDnsAddresses;
 
-			interface = map ( { name, ... }: name ) config.router.vlans;
+			interface = builtins.attrNames config.router.vlans;
 
-			dhcp-range = map ( { name, subnet, ... }: lib.join "," [
+			dhcp-range = lib.mapAttrsToList ( name: { subnet, ... }: lib.join "," [
 				"set:${name}"
 				(ipv4.nthAddress subnet 2)
 				(ipv4.lastAssignable subnet)
 				"24h"
 			]) config.router.vlans;
 
-			dhcp-option = lib.flatten (map ( { name, subnet, ... }: [
+			dhcp-option = lib.flatten (lib.mapAttrsToList ( name: { subnet, ... }: [
 				"tag:${name},option:router,${gatewayAddress subnet}"
 				"tag:${name},option:dns-server,${gatewayAddress subnet}"
 			]) config.router.vlans);
