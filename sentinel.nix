@@ -55,7 +55,7 @@
 			id = 6;
 			subnet = "192.168.0.0/24";
 		};
-		bridget = {
+		users = {
 			id = 7;
 			subnet = "192.168.5.0/24";
 			permittedToAccessVlans = [ "services" ];
