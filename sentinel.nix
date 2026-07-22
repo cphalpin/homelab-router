@@ -63,6 +63,10 @@
 	};
 
 	router.namedHosts = {
+		crossroads = {
+			mac = "a0:2b:b8:0b:95:80";
+			vlan = "infrastructure";
+		};
 		home-assistant = {
 			mac = "52:54:73:ce:d2:0a";
 			vlan = "services";
