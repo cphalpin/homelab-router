@@ -5,6 +5,7 @@
 		./modules/networking.nix
 		./modules/firewall.nix
 		./modules/dnsmasq.nix
+		./modules/dynamic-dns.nix
 	];
 
 	nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -73,6 +74,8 @@
 			permittedToAccessVlans = [ "iot" ];
 		};
 	};
+
+	router.dynamicDns.domainName = "lab.calumhalpin.com";
 
 	programs.git.enable = true;
 	programs.tmux.enable = true;

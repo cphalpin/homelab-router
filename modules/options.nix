@@ -71,5 +71,13 @@ in {
 			default = { };
 			description = "Named hosts with DHCP reservations and optional host-specific access rules.";
 		};
+
+		dynamicDns = {
+			domainName = mkOption {
+				type = types.nullOr types.str;
+				default = null;
+				description = "DNS name that should point at this router's public IPv4 address.";
+			};
+		};
 	};
 }
