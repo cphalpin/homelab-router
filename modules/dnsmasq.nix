@@ -7,10 +7,23 @@
 		"1.0.0.2"
 	];
 
+	localDomain = "home";
+	routerHostName = config.networking.hostName;
 	wireguard = config.router.wireguard;
 	gatewayAddress = subnet: ipv4.firstAssignable subnet;
-	allocatedNamedHosts = namedHosts.allocate config.router.vlans config.router.namedHosts;
+	routerHostRecords = lib.flatten (lib.mapAttrsToList ( name: { subnet, ... }: let
+		address = gatewayAddress subnet;
+	in [
+		(lib.join "," [ routerHostName "${routerHostName}.${localDomain}" address ])
+	]) config.router.vlans)
+	++
+	lib.optionals wireguard.enable (let
+		address = gatewayAddress wireguard.subnet;
+	in [
+		(lib.join "," [ routerHostName "${routerHostName}.${localDomain}" address ])
+	]);
 	dnsInterfaces = (builtins.attrNames config.router.vlans) ++ lib.optional wireguard.enable wireguard.interface;
+	allocatedNamedHosts = namedHosts.allocate config.router.vlans config.router.namedHosts;
 in {
 	services.dnsmasq = {
 		enable = true;
@@ -21,9 +34,9 @@ in {
 			dhcp-authoritative = true;
 			bind-dynamic = true;
 
-			domain = "home";
+			domain = localDomain;
 			expand-hosts = true;
-			local = "/home/";
+			local = "/${localDomain}/";
 
 			no-resolv = true;
 
@@ -49,6 +62,8 @@ in {
 				address
 				"infinite"
 			]) allocatedNamedHosts;
+
+			host-record = routerHostRecords;
 		};
 	};
 }
