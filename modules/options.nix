@@ -72,6 +72,80 @@ in {
 			description = "Named hosts with DHCP reservations and optional host-specific access rules.";
 		};
 
+		wireguard = {
+			enable = mkOption {
+				type = types.bool;
+				default = false;
+				description = "Whether to enable WireGuard remote access.";
+			};
+
+			interface = mkOption {
+				type = types.str;
+				default = "wg0";
+				description = "WireGuard network interface name.";
+			};
+
+			subnet = mkOption {
+				type = types.strMatching "[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+/[0-9]+";
+				default = "10.100.0.0/24";
+				description = "IPv4 CIDR subnet assigned to WireGuard clients.";
+			};
+
+			listenPort = mkOption {
+				type = types.port;
+				default = 51820;
+				description = "UDP port WireGuard listens on.";
+			};
+
+			privateKeyFile = mkOption {
+				type = types.path;
+				default = "/etc/wireguard/wg0.key";
+				description = "Path to the WireGuard private key installed out-of-band.";
+			};
+
+			permittedToAccessVlans = mkOption {
+				type = types.listOf types.str;
+				default = [ ];
+				description = "VLAN interface names WireGuard clients may initiate connections to.";
+			};
+
+			permittedToAccessHosts = mkOption {
+				type = types.listOf types.str;
+				default = [ ];
+				description = "Named hosts WireGuard clients may initiate connections to.";
+			};
+
+			canSshToRouter = mkOption {
+				type = types.bool;
+				default = false;
+				description = "Whether WireGuard clients may make ssh connections to the router.";
+			};
+
+			internet = mkOption {
+				type = types.bool;
+				default = false;
+				description = "Whether WireGuard clients are allowed outbound internet access through this router.";
+			};
+
+			peers = mkOption {
+				type = types.attrsOf (types.submodule {
+					options = {
+						publicKey = mkOption {
+							type = types.str;
+							description = "WireGuard peer public key.";
+						};
+
+						addressOffset = mkOption {
+							type = types.ints.positive;
+							description = "Host offset in the WireGuard subnet assigned to this peer. For example, 2 in 10.100.0.0/24 becomes 10.100.0.2.";
+						};
+					};
+				});
+				default = { };
+				description = "WireGuard peers allowed to connect to this router.";
+			};
+		};
+
 		dynamicDns = {
 			domainName = mkOption {
 				type = types.nullOr types.str;

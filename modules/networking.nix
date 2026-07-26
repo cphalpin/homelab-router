@@ -1,7 +1,12 @@
 { lib, config, ... }: let
 	ipv4 = import ../lib/ipv4.nix { inherit lib; };
+	wireguardPeers = import ../lib/wireguard-peers.nix { inherit lib; };
 
 	internetVlans = lib.filterAttrs ( _: { internet, ... }: internet ) config.router.vlans;
+	wireguard = config.router.wireguard;
+	allocatedWireguardPeers = wireguardPeers.allocate wireguard.subnet wireguard.peers;
+	wireguardAddress = "${ipv4.firstAssignable wireguard.subnet}/${toString (ipv4.parseCidr wireguard.subnet).prefix}";
+	internetInterfaces = (builtins.attrNames internetVlans) ++ lib.optional (wireguard.enable && wireguard.internet) wireguard.interface;
 in {
 	networking.useNetworkd = true;
 
@@ -20,7 +25,16 @@ in {
 	networking.nat = {
 		enable = true;
 		externalInterface = config.router.wan-interface;
-		internalInterfaces = builtins.attrNames internetVlans;
+		internalInterfaces = internetInterfaces;
+	};
+
+	networking.wireguard.interfaces = lib.optionalAttrs wireguard.enable {
+		"${wireguard.interface}" = {
+			ips = [ wireguardAddress ];
+			listenPort = wireguard.listenPort;
+			privateKeyFile = wireguard.privateKeyFile;
+			peers = map ( peer: lib.filterAttrs ( name: value: ! lib.elem name [ "name" "address" "addressOffset" ] && value != null ) peer ) allocatedWireguardPeers;
+		};
 	};
 
 	systemd.network.netdevs = lib.mapAttrs' ( name: { id, ... }:

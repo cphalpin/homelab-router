@@ -75,6 +75,25 @@
 		};
 	};
 
+	router.wireguard = {
+		enable = true;
+		subnet = "192.168.6.0/24";
+		permittedToAccessVlans = [
+			"services"
+			"users"
+		];
+		peers = {
+			tantalum = {
+				publicKey = "yBBSvDWk1xEhW7L7aMkbB0s9PwWV10anlBllpnuEwWY=";
+				addressOffset = 2;
+			};
+			bismuth = {
+				publicKey = "6bH/h2sWlCAiL+miGaORYbO4hSJwySGFpqMHRGd7Cj4=";
+				addressOffset = 3;
+			};
+		};
+	};
+
 	router.dynamicDns.domainName = "lab.calumhalpin.com";
 
 	programs.git.enable = true;
