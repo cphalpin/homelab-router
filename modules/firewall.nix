@@ -9,6 +9,10 @@
 	wireguardNamedHosts = builtins.filter ( { name, ... }: lib.elem name wireguard.permittedToAccessHosts ) allocatedNamedHosts;
 
 	nftInterfaceSet = interfaces: join ", " (map ( name: ''"${name}"'' ) interfaces);
+	namedHostTargetRules = lib.flatten (map ( source:
+		map ( target: ''iifname "${source.vlan}" ip saddr ${source.address} ip daddr ${target.address} oifname "${target.vlan}" accept'' )
+			(builtins.filter ( { name, ... }: lib.elem name source.permittedToAccessHosts ) allocatedNamedHosts)
+	) (builtins.filter ( { permittedToAccessHosts, ... }: permittedToAccessHosts != [ ] ) allocatedNamedHosts));
 in {
 	networking.nftables.enable = true;
 
@@ -19,9 +23,14 @@ in {
 		message = "router.vlans entry '${name}' has unknown permittedToAccessVlans target(s): ${join ", " permittedToAccessVlans}";
 	}) config.router.vlans
 	++
-	lib.mapAttrsToList ( name: { vlan, permittedToAccessVlans, ... }: {
-		assertion = lib.elem vlan vlanInterfaces && lib.all ( target: lib.elem target vlanInterfaces ) permittedToAccessVlans;
-		message = "router.namedHosts entry '${name}' must use a known vlan and known permittedToAccessVlans targets.";
+	lib.mapAttrsToList ( name: { vlan, permittedToAccessVlans, permittedToAccessHosts, ... }: {
+		assertion =
+			lib.elem vlan vlanInterfaces
+			&&
+			lib.all ( target: lib.elem target vlanInterfaces ) permittedToAccessVlans
+			&&
+			lib.all ( target: lib.elem target namedHostNames ) permittedToAccessHosts;
+		message = "router.namedHosts entry '${name}' must use a known vlan, known permittedToAccessVlans targets, and known permittedToAccessHosts targets.";
 	}) config.router.namedHosts
 	++
 	lib.optional wireguard.enable {
@@ -58,6 +67,8 @@ in {
 		(map ( { vlan, address, permittedToAccessVlans, ... }:
 			''iifname "${vlan}" ip saddr ${address} oifname { ${nftInterfaceSet permittedToAccessVlans} } accept''
 		) (builtins.filter ( { permittedToAccessVlans, ... }: permittedToAccessVlans != [ ] ) allocatedNamedHosts))
+		++
+		namedHostTargetRules
 		++
 		lib.optional (wireguard.enable && wireguard.permittedToAccessVlans != [ ])
 			''iifname "${wireguard.interface}" oifname { ${nftInterfaceSet wireguard.permittedToAccessVlans} } accept''

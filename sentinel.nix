@@ -73,6 +73,11 @@
 			vlan = "services";
 			permittedToAccessVlans = [ "iot" ];
 		};
+		home-assistant-voice-09fc25 = {
+			mac = "20:f8:3b:09:fc:25";
+			vlan = "iot";
+			permittedToAccessHosts = [ "home-assistant" ];
+		};
 	};
 
 	router.wireguard = {

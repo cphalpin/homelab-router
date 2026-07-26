@@ -66,6 +66,12 @@ in {
 						default = [ ];
 						description = "VLAN interface names this host may initiate connections to.";
 					};
+
+					permittedToAccessHosts = mkOption {
+						type = types.listOf types.str;
+						default = [ ];
+						description = "Named hosts this host may initiate connections to.";
+					};
 				};
 			});
 			default = { };
