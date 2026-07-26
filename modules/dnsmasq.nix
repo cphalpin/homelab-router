@@ -7,8 +7,10 @@
 		"1.0.0.2"
 	];
 
+	wireguard = config.router.wireguard;
 	gatewayAddress = subnet: ipv4.firstAssignable subnet;
 	allocatedNamedHosts = namedHosts.allocate config.router.vlans config.router.namedHosts;
+	dnsInterfaces = (builtins.attrNames config.router.vlans) ++ lib.optional wireguard.enable wireguard.interface;
 in {
 	services.dnsmasq = {
 		enable = true;
@@ -27,7 +29,7 @@ in {
 
 			server = cloudflareDnsAddresses;
 
-			interface = builtins.attrNames config.router.vlans;
+			interface = dnsInterfaces;
 
 			dhcp-range = lib.mapAttrsToList ( name: { subnet, ... }: lib.join "," [
 				"set:${name}"
