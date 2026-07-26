@@ -11,18 +11,8 @@
 	routerHostName = config.networking.hostName;
 	wireguard = config.router.wireguard;
 	gatewayAddress = subnet: ipv4.firstAssignable subnet;
-	routerHostRecords = lib.flatten (lib.mapAttrsToList ( name: { subnet, ... }: let
-		address = gatewayAddress subnet;
-	in [
-		(lib.join "," [ routerHostName "${routerHostName}.${localDomain}" address ])
-	]) config.router.vlans)
-	++
-	lib.optionals wireguard.enable (let
-		address = gatewayAddress wireguard.subnet;
-	in [
-		(lib.join "," [ routerHostName "${routerHostName}.${localDomain}" address ])
-	]);
 	dnsInterfaces = (builtins.attrNames config.router.vlans) ++ lib.optional wireguard.enable wireguard.interface;
+	routerInterfaceNames = map ( interface: "${routerHostName}.${localDomain},${interface}/4" ) dnsInterfaces;
 	allocatedNamedHosts = namedHosts.allocate config.router.vlans config.router.namedHosts;
 in {
 	services.dnsmasq = {
@@ -33,6 +23,8 @@ in {
 			bogus-priv = true;
 			dhcp-authoritative = true;
 			bind-dynamic = true;
+			localise-queries = true;
+			no-hosts = true;
 
 			domain = localDomain;
 			expand-hosts = true;
@@ -43,6 +35,7 @@ in {
 			server = cloudflareDnsAddresses;
 
 			interface = dnsInterfaces;
+			interface-name = routerInterfaceNames;
 
 			dhcp-range = lib.mapAttrsToList ( name: { subnet, ... }: lib.join "," [
 				"set:${name}"
@@ -62,8 +55,6 @@ in {
 				address
 				"infinite"
 			]) allocatedNamedHosts;
-
-			host-record = routerHostRecords;
 		};
 	};
 }
